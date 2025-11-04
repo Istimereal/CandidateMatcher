@@ -46,10 +46,13 @@ public class Skill {
     private Set<Candidate> candidates = new HashSet<>();
 
     public void addCandidate(Candidate candidate) {
-        candidates.add(candidate);
+        if (candidates.add(candidate)) {
+            candidate.getSkills().add(this);
+        }
     }
-
-    public void removeCandidate(Candidate candidate) {
-        candidates.remove(candidate);
+        public void removeCandidate (Candidate candidate){
+            if (candidates.remove(candidate)) {
+                candidate.getSkills().remove(this);
+            }
+        }
     }
-}

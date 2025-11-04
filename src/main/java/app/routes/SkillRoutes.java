@@ -18,18 +18,11 @@ public class SkillRoutes {
 
     public EndpointGroup getSkillRoutes() {
         return () -> {
-         /*   // GET /Skills
-            get("/", SkillController::geAllSkills, Role.ADMIN, Role.USER);
-
-            // GET /Skills/{id}
-            get("/{id}", SkillController::getSkillById, Role.ADMIN, Role.USER);
-
-            post("/", SkillController::createSkill, Role.ADMIN);
-            // PUT /Skills/{id}
-            put("/{id}", SkillController::updateSkill, Role.ADMIN);
-
-            // DELETE /Skills/{id}
-            delete("/{id}", SkillController::deleteSkill, Role.ADMIN);
-      */  };
+            get("/", skillController::getAllSkills, Role.ADMIN, Role.USER);
+            get("/{id}", skillController::getSkillById, Role.ADMIN, Role.USER);
+            post("/", skillController::createSkill, Role.ADMIN);
+            put("/{id}", skillController::updateSkill, Role.ADMIN);
+            delete("/{id}", skillController::deleteSkill, Role.ADMIN);
+        };
     }
 }

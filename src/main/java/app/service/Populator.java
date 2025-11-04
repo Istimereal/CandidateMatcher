@@ -2,6 +2,9 @@ package app.service;
 
 import app.config.HibernateConfig;
 //import app.enums.Category;
+import app.entities.Candidate;
+import app.entities.Skill;
+import app.enums.Category;
 import app.security.Role;
 import app.security.User;
 import jakarta.persistence.EntityManager;
@@ -73,65 +76,65 @@ public class Populator {
             System.out.println("Users and roles created successfully!");
         }
     }
-/*
-    public void poppulateDBTest(){
+
+    public void poppulateDBTest() {
         try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
-            Guide g1 = Guide.builder()
-                    .name("tim")
-                    .email("tim@guide.dk")
-                    .phoneNumber(12345678)
-                    .experienceInYears(4)
-                    .trips(new ArrayList<>())
+            Skill s1 = Skill.builder()
+                    .name("Java")
+                    .category(Category.PROG_LANG)
+                    .description("General-purpose programming languages")
                     .build();
 
-            Guide g2 = Guide.builder()
-                    .name("max")
-                    .email("max@guide.dk")
-                    .phoneNumber(34567812)
-                    .experienceInYears(2)
-                    .trips(new ArrayList<>())
+            Skill s2 = Skill.builder()
+                    .name("Python")
+                    .category(Category.PROG_LANG)
+                    .description("General-purpose programming languages")
                     .build();
 
-            LocalDateTime start1 = LocalDateTime.of(2025, 11, 10, 8, 30);
-            LocalDateTime end1 = LocalDateTime.of(2025, 11, 14, 8, 30);
-
-            LocalDateTime start2 = LocalDateTime.of(2025, 11, 18, 8, 30);
-            LocalDateTime end2 = LocalDateTime.of(2025, 11, 24, 8, 30);
-
-            Category category1 = LAKE;
-            Category cat2 = BEACH;
-
-            Trip t1 = Trip.builder()
-                    .name("ski")
-                    .startTime(start1)
-                    .endTime(end1)
-                    .locationCordinates("10.103.23")
-                    .price(4000)
-                    .category(category1)
-                    .build();
-            Trip t2 = Trip.builder()
-                    .name("tenerife")
-                    .startTime(start2)
-                    .endTime(end2)
-                    .locationCordinates("10.103.25")
-                    .price(7000)
-                    .category(cat2)
+            Skill s3 = Skill.builder()
+                    .name("JavaScript")
+                    .category(Category.PROG_LANG)
+                    .description("General-purpose programming languages")
                     .build();
 
-            g1.addTrip(t1);
-            g2.addTrip(t2);
+            Skill s4 = Skill.builder()
+                    .name("MySQL")
+                    .category(Category.DB)
+                    .description("Databases and data storage technologies")
+                    .build();
 
-            em.persist(g1);
-            em.persist(g2);
+            Candidate c1 = Candidate.builder()
+                            .name("Cody")
+                    .phoneNumber("12345678")
+                            .build();
+
+            Candidate c2 = Candidate.builder()
+                    .name("Boby")
+                    .phoneNumber("34567812")
+                    .build();
+
+            em.persist(s1);
+            em.persist(s2);
+            em.persist(s3);
+            em.persist(s4);
+
+            c1.addSkill(s1);
+            c1.addSkill(s2);
+
+            c2.addSkill(s3);
+            c2.addSkill(s4);
+
+            em.persist(c1);
+            em.persist(c2);
 
             em.getTransaction().commit();
         }
-        try (EntityManager em = emf.createEntityManager()) {
-            List<Guide> guides = em.createQuery("SELECT g FROM Guide g", Guide.class).getResultList();
-            System.out.println("Guides in DB: " + guides.size());
+        catch (Exception e){
+
+            System.out.println("Exception in poppulateDBTest");
         }
-    }  */
+    }
 
     public void poppulateDBTestSecurity(){
         try (EntityManager em = emf.createEntityManager()) {

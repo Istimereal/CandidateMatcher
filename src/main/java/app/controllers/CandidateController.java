@@ -1,0 +1,249 @@
+package app.controllers;
+
+import app.daos.CandidateDAO;
+import app.daos.CandidateDAO;
+
+import app.dtos.CandidateDTO;
+import app.entities.Candidate;
+import app.enums.Category;
+import app.exceptions.ApiException;
+import app.service.PackingService;
+import app.service.CandidateConverters;
+import io.javalin.http.BadRequestResponse;
+import io.javalin.http.Context;
+import io.javalin.http.HttpStatus;
+import jakarta.persistence.PersistenceException;
+import org.hibernate.dialect.function.DB2SubstringFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import static app.utils.ResponseUtil.disableCache;
+
+
+
+public class CandidateController {
+    LocalDateTime timeStamp = LocalDateTime.now();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    String formattedTime = timeStamp.format(formatter);
+
+    private static final Logger logger = LoggerFactory.getLogger("production");
+    private static final Logger debugLogProd = LoggerFactory.getLogger("debug");
+    private final CandidateDAO CandidateDAO;
+
+    public CandidateController(CandidateDAO CandidateDAO) {
+        this.CandidateDAO = CandidateDAO;
+    }
+
+    public void getCandidates(Context ctx) {
+        try {
+            disableCache(ctx);
+            List<CandidateDTO> candidateDTOs = CandidateConverters.convertToCandidateDTO(CandidateDAO.getAllCandidates());
+                if (candidateDTOs.isEmpty()) {
+                    ctx.status(HttpStatus.NOT_FOUND).json(Map.of("status", HttpStatus.NOT_FOUND.getCode(), "msg", "No Candidates in database"));
+                    logger.warn("No Candidates in database");
+                } else {
+                    ctx.status(200).json(candidateDTOs);
+                }
+        }
+        catch (ApiException ae){
+            int code = ae.getStatusCode();
+            ctx.status(code).json(Map.of("status", code,
+                    "msg","Database problems, try agian later"));
+            debugLogProd.debug(formattedTime, "Error with database trying to trying to get all", ae);
+        }
+        catch (Exception e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).json(Map.of("status",
+                    HttpStatus.INTERNAL_SERVER_ERROR.getCode(), "msg",
+                    "There was an unexpected error with the server, try again later"));
+            debugLogProd.debug(formattedTime, "unexpected error with the server ", e);
+        }
+    }
+
+    public void getCandidateById(Context ctx) {
+        int id = 0;
+        try {
+            disableCache(ctx);
+            id = Integer.parseInt(ctx.pathParam("id"));
+            if (id > 0) {
+                CandidateDTO CandidateDTO = CandidateConverters.convertToCandidateDTO(CandidateDAO.getCandidateById(id));
+
+                ctx.status(200).json(CandidateDTO);
+            }
+            else {
+                ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("status",HttpStatus.BAD_REQUEST.getCode(),"msg", "You need to type at id above 0"));
+            }
+        }
+        catch (NumberFormatException ne) {
+            ctx.status(HttpStatus.BAD_REQUEST.getCode()).json(Map.of("status", HttpStatus.BAD_REQUEST.getCode(), "msg",
+                    "Invalid id format: " + ctx.pathParam("id")));
+        }
+        catch (ApiException ae) {
+            int code = ae.getStatusCode();
+            String msg = "";
+            String debugMsg = "";
+            if(code == 404){ msg = "Candidate with id " + id + " not found in database";}
+            else {
+                msg = "Problems getting popolarity externally, try again later";
+                debugLogProd.error(formattedTime, debugMsg, ae);
+            }
+            ctx.status(code).json(
+                    Map.of("status", HttpStatus.forStatus(code).getCode(),
+                            "msg", msg ));
+        }
+        catch (Exception e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).json(Map.of("status",
+                    HttpStatus.INTERNAL_SERVER_ERROR.getCode(), "msg",
+                    "There was an unexpected error with the server, try again later"));
+            debugLogProd.debug(formattedTime, "unexpected error with the server trying to find Candidate by ID: ", e);
+        }
+    }
+
+    public void createCandidate(Context ctx) {
+        try {
+            CandidateDTO newCandidate = ctx.bodyAsClass(CandidateDTO.class);
+
+            CandidateDTO createdCandidate = CandidateConverters.convertToCandidateDTO(CandidateDAO.createCandidate(CandidateConverters.convertToCandidate(newCandidate)));
+            ctx.status(HttpStatus.CREATED).json(createdCandidate);
+        }
+        catch(BadRequestResponse br) {
+            ctx.status(HttpStatus.BAD_REQUEST).
+                    json(Map.of("status", HttpStatus.BAD_REQUEST.getCode(),
+                            "msg", "Invalid post, see documentation for correct form"));
+        }
+        catch (ApiException ae){
+            int code = ae.getStatusCode();
+            ctx.status(code).json(Map.of("status", code,
+                    "msg","Database problems, try agian later"));
+            debugLogProd.debug(formattedTime, "Error with database trying to trying to create Candidate", ae);
+        }
+        catch(Exception e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).json(Map.of("status",HttpStatus.INTERNAL_SERVER_ERROR.getCode(),
+                    "msg", "There was an unexpected problem with the server"));
+            debugLogProd.error(formattedTime, "Unexpected server problem while creating a Candidate", e);
+        }
+    }
+
+    public void updateCandidate(Context ctx) {
+        int id = 0;
+        Candidate Candidate = null;
+        try {
+            id = Integer.parseInt(ctx.pathParam("id"));
+            if (id > 0) {
+                Candidate = CandidateDAO.getCandidateById(id);
+
+                if (Candidate == null) {
+                    ctx.status(HttpStatus.NOT_FOUND).json(Map.of("status", HttpStatus.NOT_FOUND.getCode(), "msg", "guide not found"));
+                    return;
+                }
+            }
+            CandidateDTO CandidateUpdateDTO = ctx.bodyAsClass(CandidateDTO.class);
+            if(CandidateUpdateDTO.getName() != null && CandidateUpdateDTO.getName().isEmpty()) {
+                throw new BadRequestResponse("Name cannot be empty, exclude or put desired name");
+            }
+            Candidate forUpdate = CandidateConverters.convertToCandidate(CandidateUpdateDTO);
+            Candidate updateResult =  CandidateDAO.updateCandidate(id, forUpdate);
+            CandidateDTO updated = CandidateConverters.convertToCandidateDTO(updateResult);
+            ctx.status(HttpStatus.OK).json(updated);
+        }
+        catch(BadRequestResponse bre) {
+
+            String message;
+
+            if (bre.getMessage() == null || bre.getMessage().isBlank()) {
+
+                message = "Candidate with id: " + ctx.pathParam("id") +
+                        " was not in valid JSON format. See API documentation for correct structure.";
+            } else {
+                message = bre.getMessage();
+            }
+            ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("status", HttpStatus.BAD_REQUEST.getCode(), "msg", message));
+        }
+        catch (ApiException ae){
+            int code = ae.getStatusCode();
+            ctx.status(code).json(Map.of("status", code,
+                    "msg","Database problems, try agian later"));
+            debugLogProd.debug(formattedTime, " Database error trying to update Candidate ", ae);
+        }
+        catch (Exception e) {
+            ctx.json(Map.of("status", HttpStatus.INTERNAL_SERVER_ERROR.getCode(), "msg", "Unexpected error updating Candidate" + ctx.pathParam("id")));
+            debugLogProd.debug(formattedTime + "; Unexpected error trying to update Candidate:" + id + "OperationState: ", e);
+        }
+    }
+
+    public void deleteCandidate(Context ctx) {
+        int id = 0;
+        try {
+            disableCache(ctx);
+            id = Integer.parseInt(ctx.pathParam("id"));
+            if (id > 0) {
+                CandidateDAO.deleteCandidate(id);
+                ctx.status(HttpStatus.OK).json(Map.of("status",HttpStatus.OK.getCode(),"msg", "Candidate with id: " + id + " was deleted"));
+            }
+            else {
+                ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("status",HttpStatus.BAD_REQUEST.getCode(),"msg", "You need to type at id above 0"));
+            }
+        }
+        catch (NumberFormatException ne) {
+            ctx.json(Map.of("status", HttpStatus.BAD_REQUEST.getCode(), "msg",
+                    "Invalid id format:" + ctx.pathParam("id")));
+        }
+        catch (ApiException ae){
+            int code = ae.getStatusCode();
+            ctx.status(code).json(Map.of("status", code,
+                    "msg","Database problems, try agian later"));
+            debugLogProd.debug(formattedTime, " Database error trying to delete Candidate ", ae);
+        }
+        catch(Exception e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).json(Map.of("status", HttpStatus.INTERNAL_SERVER_ERROR.getCode(),
+                    "msg", "There was an unexpected server error with the server"));
+            debugLogProd.debug(formattedTime + "; Unexpected server while trying to delete Candidate with Id: " + id, e);
+        }
+    }
+
+    public void linkSkillToCandidate(Context ctx) {
+        int candidateId = 0;
+        int skillId = 0;
+        try {
+            disableCache(ctx);
+            candidateId = Integer.parseInt(ctx.pathParam("candidateId"));
+            skillId = Integer.parseInt(ctx.pathParam("skillId"));
+            if (candidateId <= 0) {
+                ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("status", HttpStatus.BAD_REQUEST.getCode(),
+                        "msg", "candidateId must be greater than 0"));
+                return;
+            }
+            if (skillId <= 0) {
+                ctx.status(HttpStatus.BAD_REQUEST).json(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.getCode(),
+                        "msg", "skillId must be greater than 0"));
+                return;
+            }
+             CandidateDAO.addSkillToCandidate(candidateId, skillId);
+
+            ctx.status(HttpStatus.OK).json(Map.of(
+                    "status", HttpStatus.OK.getCode(),    "msg", "Skill has been added to candidate" ));
+        }
+        catch (NumberFormatException ne) {
+            ctx.json(Map.of(
+                    "status", HttpStatus.BAD_REQUEST.getCode(), "msg", "Invalid id format. Must be a number"                                                         ));
+        }
+        catch (ApiException ae) {
+            int code = ae.getStatusCode();
+            ctx.status(code).json(Map.of(
+                    "status", code,
+                    "msg", ae.getMessage()));
+        }
+        catch (Exception e) {
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).json(Map.of(
+                    "status", HttpStatus.INTERNAL_SERVER_ERROR.getCode(),
+                    "msg", "Unexpected server error"));
+            debugLogProd.debug(formattedTime, "Unexpected error linking skill to candidate", e);
+        }
+    }
+}

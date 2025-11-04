@@ -1,9 +1,15 @@
 package app.config;
 
+import app.controllers.CandidateController;
+import app.controllers.SkillController;
+import app.daos.CandidateDAO;
+import app.daos.SkillDAO;
 import app.exceptions.ApiException;
 
+import app.routes.CandidateRoutes;
 import app.routes.Routes;
 import app.routes.SecurityRoutes;
+import app.routes.SkillRoutes;
 import app.security.SecurityController;
 import app.security.SecurityDAO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,24 +26,24 @@ public class ApplicationConfig {
     private static final Logger logger = LoggerFactory.getLogger(ApplicationConfig.class);
     private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-  /*  public static Javalin startServer(int port, EntityManagerFactory emf) {
+    public static Javalin startServer(int port, EntityManagerFactory emf) {
 
         // Init security + routes
 
-       GuideDAO guideDAO = GuideDAO.getInstance(emf);
-        TripDAO tripDAO = TripDAO.getInstance(emf);
+        SkillDAO skillDAO = SkillDAO.getInstance(emf);
+        CandidateDAO candidateDAO = CandidateDAO.getInstance(emf);
 
-        GuideController GuideController = new GuideController(guideDAO);
-        TripController TripController = new TripController(tripDAO);
+        SkillController skillController = new SkillController(skillDAO);
+        CandidateController candidateController = new CandidateController(candidateDAO);
 
         SecurityDAO securityDAO = new SecurityDAO(emf);
         SecurityController securityController = new SecurityController(securityDAO);
         SecurityRoutes securityRoutes = new SecurityRoutes(securityController);
 
-        GuideRoutes guideRoutes = new GuideRoutes(GuideController);
-        TripRoutes tripRoutes = new TripRoutes(TripController, GuideController);
+        SkillRoutes skillRoutes = new SkillRoutes(skillController);
+        CandidateRoutes candidateRoutes = new CandidateRoutes(candidateController, skillController);
 
-        Routes routes = new Routes(guideRoutes, tripRoutes);
+        Routes routes = new Routes(skillRoutes, candidateRoutes);
 
         Javalin app = Javalin.create(config -> {
             config.showJavalinBanner = false;
@@ -68,7 +74,7 @@ public class ApplicationConfig {
 
         app.start(port);
         return app;
-    }   */
+    }
 
     private static void setCORS(Javalin app) {
         app.before(ApplicationConfig::setCorsHeaders);

@@ -1,5 +1,7 @@
 package app.config;
 
+import app.entities.Candidate;
+import app.entities.Skill;
 import app.security.Role;
 import app.security.User;
 import app.utils.Utils;
@@ -46,8 +48,8 @@ public class HibernateConfig {
     private static void getAnnotationConfiguration(Configuration configuration) {
         configuration.addAnnotatedClass(User.class);
         configuration.addAnnotatedClass(Role.class);
-     //   configuration.addAnnotatedClass(Trip.class);
-      //  configuration.addAnnotatedClass(Guide.class);
+        configuration.addAnnotatedClass(Skill.class);
+        configuration.addAnnotatedClass(Candidate.class);
     }
 
     private static EntityManagerFactory createEMF(boolean forTest, String dbName) {
@@ -88,7 +90,7 @@ public class HibernateConfig {
             props.put("hibernate.connection.driver_class", "org.postgresql.Driver");
         }
         //    props.put("hibernate.connection.driver_class", "org.postgresql.Driver");
-        props.put("hibernate.hbm2ddl.auto", "create");  // set to "update" when in production
+        props.put("hibernate.hbm2ddl.auto", "update");  // set to "update" when in production
         props.put("hibernate.current_session_context_class", "thread");
         props.put("hibernate.show_sql", "false");
         props.put("hibernate.format_sql", "false");
@@ -105,10 +107,10 @@ public class HibernateConfig {
     }
 
     private static Properties setDevProperties(Properties props) {
-        props.put("hibernate.connection.url", "jdbc:postgresql://localhost:5432/tripplanner");
+        props.put("hibernate.connection.url", "jdbc:postgresql://localhost:5432/candidate_matcher");
         props.put("hibernate.connection.username", "dev2");
         props.put("hibernate.connection.password", "ax22");
-        props.put("hibernate.hbm2ddl.auto", "create-drop"); // To keep tables
+        props.put("hibernate.hbm2ddl.auto", "update"); // To keep tables
         props.put("hibernate.show_sql", "true");
         props.put("hibernate.format_sql", "true");
         return props;

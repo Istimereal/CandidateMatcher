@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:7080/api/v1
+@baseUrl = http://localhost:7090/api/v1
 @adminUsername = admin1
 @adminPassword = admin12
 @userUsername = user12
@@ -48,88 +48,69 @@ Content-Type: application/json
 
 > {% client.global.set("token", response.body.token); %}
 
-###  Get
-GET {{baseUrl}}/
+### Get all candidates
+GET {{baseUrl}}/candidates
 Authorization: Bearer {{token}}
 
-### Get
-GET {{baseUrl}}/
+### Get candidate by id
+GET {{baseUrl}}/candidates/1
 Authorization: Bearer {{token}}
 
-###
-POST {{baseUrl}}/
-Authorization: Bearer {{token}}
-Content-Type: application/json
-Accept: application/json
-
-{
-  "name": "Jonas",
-  "email": "jonas@guide.dk",
-  "phoneNumber": 12345678,
-  "experienceInYears": 5
-}
-
-###
-PUT {{baseUrl}}
-Authorization: Bearer {{token}}
-Content-Type: application/json
-
-
-### Delete
-DELETE {{baseUrl}}/
-Authorization: Bearer {{token}}
-
-###
-POST {{baseUrl}}/
+### Create candidate
+POST {{baseUrl}}/candidates
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Beach trip",
-  "startTime": "2025-11-01T09:00:00",
-  "endTime": "2025-11-01T17:00:00",
-  "locationCordinates": "57.048",
-  "price": 5000,
-  "category": "BEACH"
+  "name": "Peter",
+  "phonenumber": "12345678"
 }
 
-###
-PUT {{baseUrl}}/
+### Update candidate
+PUT {{baseUrl}}/candidates/1
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "price": 7000
+  "phonenumber": "87654321"
 }
 
-###
-PUT {{baseUrl}}/
+### Delete candidate
+DELETE {{baseUrl}}/candidates/1
 Authorization: Bearer {{token}}
 
-###
-GET {{baseUrl}}/
+### Get all skills
+GET {{baseUrl}}/skills
 Authorization: Bearer {{token}}
 
-###
-GET {{baseUrl}}/
+### Get skill by id
+GET {{baseUrl}}/skills/1
 Authorization: Bearer {{token}}
 
-###
-GET {{baseUrl}}/
+### Create skill
+POST {{baseUrl}}/skills
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Java",
+  "category": "DB",
+  "description": "Databases and data storage technologies"
+}
+
+### Update skill
+PUT {{baseUrl}}/skills/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Application frameworks and libraries"
+}
+
+### Delete skill
+DELETE {{baseUrl}}/skills/1
 Authorization: Bearer {{token}}
 
-### Get
-GET {{baseUrl}}/
-Authorization: Bearer {{token}}
-
-### Delete
-DELETE {{baseUrl}}/
-Authorization: Bearer {{token}}
-
-### Get
-GET {{baseUrl}}/
-Authorization: Bearer {{token}}
-
-### Get
-GET {{baseUrl}}/
+### Add skill to candidate
+PUT {{baseUrl}}/candidates/1/skills/1
 Authorization: Bearer {{token}}

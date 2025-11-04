@@ -5,6 +5,7 @@ import app.controllers.SkillController;
 import app.security.SecurityController;
 import io.javalin.apibuilder.EndpointGroup;
 import app.security.SecurityController.Role;
+import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class CandidateRoutes {
 
@@ -19,19 +20,15 @@ public class CandidateRoutes {
 
     public EndpointGroup getCandidateRoutes() {
         return () -> {
-        /*    get("/Skills/totalprice", CandidateController::totalPriceCandidatesBySkill, SecurityController.Role.ADMIN);
-            get("/{id}/packing/weight", CandidateController::getPackingWeight, Role.ADMIN, Role.USER);
-            put("/{CandidateId}/Skills/{SkillId}", CandidateController::linkSkillToCandidate, Role.ADMIN);
-            get("/", CandidateController::getCandidates, Role.ADMIN, Role.USER);  // ?category=lake gives all Candidates by a category
-            post("/", CandidateController::createCandidate, Role.ADMIN);
-            put("/{id}", CandidateController::updateCandidate);
-            delete("/{id}", CandidateController::deleteCandidate, Role.ADMIN);
-
-            get("/{id}", CandidateController::getCandidateById, Role.ADMIN, Role.USER);
-
-
-            post("/Skills", SkillController::createSkill, Role.ADMIN);
-       */ };
+                get("/skills/totalprice", candidateController::getCandidates, Role.ADMIN);
+                put("/{candidateId}/skills/{skillId}", candidateController::linkSkillToCandidate, Role.ADMIN);
+                get("/", candidateController::getCandidates, Role.ADMIN, Role.USER);
+                post("/", candidateController::createCandidate, Role.ADMIN);
+                put("/{id}", candidateController::updateCandidate, Role.ADMIN);
+                delete("/{id}", candidateController::deleteCandidate, Role.ADMIN);
+                get("/{id}", candidateController::getCandidateById, Role.ADMIN, Role.USER);
+                post("/skills", skillController::createSkill, Role.ADMIN);
+        };
     }
 
 }

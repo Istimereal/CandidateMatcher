@@ -135,65 +135,6 @@ public class Populator {
             System.out.println("Exception in poppulateDBTest");
         }
     }
-/*
-    public void poppulateDBTest(){
-        try (EntityManager em = emf.createEntityManager()) {
-            em.getTransaction().begin();
-            Guide g1 = Guide.builder()
-                    .name("tim")
-                    .email("tim@guide.dk")
-                    .phoneNumber(12345678)
-                    .experienceInYears(4)
-                    .trips(new ArrayList<>())
-                    .build();
-
-            Guide g2 = Guide.builder()
-                    .name("max")
-                    .email("max@guide.dk")
-                    .phoneNumber(34567812)
-                    .experienceInYears(2)
-                    .trips(new ArrayList<>())
-                    .build();
-
-            LocalDateTime start1 = LocalDateTime.of(2025, 11, 10, 8, 30);
-            LocalDateTime end1 = LocalDateTime.of(2025, 11, 14, 8, 30);
-
-            LocalDateTime start2 = LocalDateTime.of(2025, 11, 18, 8, 30);
-            LocalDateTime end2 = LocalDateTime.of(2025, 11, 24, 8, 30);
-
-            Category category1 = LAKE;
-            Category cat2 = BEACH;
-
-            Trip t1 = Trip.builder()
-                    .name("ski")
-                    .startTime(start1)
-                    .endTime(end1)
-                    .locationCordinates("10.103.23")
-                    .price(4000)
-                    .category(category1)
-                    .build();
-            Trip t2 = Trip.builder()
-                    .name("tenerife")
-                    .startTime(start2)
-                    .endTime(end2)
-                    .locationCordinates("10.103.25")
-                    .price(7000)
-                    .category(cat2)
-                    .build();
-
-            g1.addTrip(t1);
-            g2.addTrip(t2);
-
-            em.persist(g1);
-            em.persist(g2);
-
-            em.getTransaction().commit();
-        }
-        try (EntityManager em = emf.createEntityManager()) {
-            List<Guide> guides = em.createQuery("SELECT g FROM Guide g", Guide.class).getResultList();
-            System.out.println("Guides in DB: " + guides.size());
-        }
-    }  */
 
     public void poppulateDBTestSecurity(){
         try (EntityManager em = emf.createEntityManager()) {

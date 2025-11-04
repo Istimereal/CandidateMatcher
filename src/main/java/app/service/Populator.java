@@ -2,10 +2,13 @@ package app.service;
 
 import app.config.HibernateConfig;
 //import app.enums.Category;
+import app.entities.Skill;
 import app.security.Role;
 import app.security.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+
+import app.enums.Category;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -73,7 +76,49 @@ public class Populator {
             System.out.println("Users and roles created successfully!");
         }
     }
-/*
+
+    public void poppulateDBTest() {
+        try (EntityManager em = emf.createEntityManager()) {
+            em.getTransaction().begin();
+            Skill s1 = Skill.builder()
+                    .name("Java")
+                    .category(Category.PROG_LANG)
+                    .description("General-purpose programming languages")
+                    .build();
+
+            Skill s2 = Skill.builder()
+                    .name("Python")
+                    .category(Category.PROG_LANG)
+                    .description("General-purpose programming languages")
+                    .build();
+
+            Skill s3 = Skill.builder()
+                    .name("JavaScript")
+                    .category(Category.PROG_LANG)
+                    .description("General-purpose programming languages")
+                    .build();
+
+            Skill s4 = Skill.builder()
+                    .name("MySQL")
+                    .category(Category.DB)
+                    .description("Databases and data storage technologies")
+                    .build();
+
+            em.persist(s1);
+            em.persist(s2);
+            em.persist(s3);
+            em.persist(s4);
+
+
+            em.getTransaction().commit();
+        }
+        catch (Exception e){
+            System.out.println("Exception in poppulateDBTest");
+        }
+    }
+
+
+    /*
     public void poppulateDBTest(){
         try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();

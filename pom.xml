@@ -29,7 +29,7 @@
 
         <javalin.version>6.3.0</javalin.version>
         <javalin.port>7078</javalin.port>
-        <db.name>tripplanner</db.name>
+        <db.name>candidate_matcher</db.name>
     </properties>
 
     <!-- Secutity token library -->

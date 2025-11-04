@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Setter
@@ -33,14 +35,17 @@ public class Candidate {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "candidate_skill", joinColumns = @JoinColumn(name = "candidate_id"),
             inverseJoinColumns = @JoinColumn(name = "skill_id"))
-    List<Skill> skills;
+    Set<Skill> skills = new HashSet();
 
     public void addSkill(Skill skill) {
-        skills.add(skill);
+        if (skills.add(skill)) {
+            skill.getCandidates().add(this);
+        }
     }
-
     public void removeSkill(Skill skill) {
-        skills.remove(skill); }
+        if (skills.remove(skill)) {
+            skill.getCandidates().remove(this);
+        }
 
-
+    }
 }

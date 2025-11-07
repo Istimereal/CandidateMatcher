@@ -11,10 +11,10 @@ public class Main {
 
     //     EntityManagerFactory emf = HibernateConfig.getEntityManagerFactory("candidate_matcher");
         EntityManagerFactory emfTest = HibernateConfig.getEntityManagerFactoryForTest();
-    //    Populator populator = new Populator(emf);
-      //  Populator populator = new Populator(emfTest);
+       // Populator populator = new Populator(emf);
+        Populator populator = new Populator(emfTest);
      //     populator.createAdminAndRolesForProdDB();
-     //   populator.createUsersAndRolesTest();
+        populator.createUsersAndRolesTest();
    //    populator.poppulateDBTestSecurity();
       //  populator.poppulateDBTest();
 

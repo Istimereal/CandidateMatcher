@@ -103,6 +103,7 @@ public class ApplicationConfig {
             ctx.status(statusCode);
         });
     }
+
     private static void beforeFilter(Javalin app) {
         app.before(ctx -> {
             // Debug-request headers, valgfrit

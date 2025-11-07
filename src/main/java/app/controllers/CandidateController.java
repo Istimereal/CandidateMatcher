@@ -147,7 +147,7 @@ public class CandidateController {
                 throw new BadRequestResponse("Name cannot be empty, exclude or put desired name");
             }
             Candidate forUpdate = CandidateConverters.convertToCandidate(CandidateUpdateDTO);
-            Candidate updateResult =  CandidateDAO.updateCandidate(id, forUpdate);
+            Candidate updateResult = CandidateDAO.updateCandidate(id, forUpdate);
             CandidateDTO updated = CandidateConverters.convertToCandidateDTO(updateResult);
             ctx.status(HttpStatus.OK).json(updated);
         }
@@ -227,7 +227,7 @@ public class CandidateController {
              CandidateDAO.addSkillToCandidate(candidateId, skillId);
 
             ctx.status(HttpStatus.OK).json(Map.of(
-                    "status", HttpStatus.OK.getCode(),    "msg", "Skill has been added to candidate" ));
+                    "status", HttpStatus.OK.getCode(),"msg", "Skill has been added to candidate" ));
         }
         catch (NumberFormatException ne) {
             ctx.json(Map.of(

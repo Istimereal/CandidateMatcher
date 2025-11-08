@@ -3,6 +3,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+import org.testcontainers.shaded.org.apache.commons.lang3.builder.EqualsExclude;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -35,13 +36,16 @@ public class Candidate {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "candidate_skill", joinColumns = @JoinColumn(name = "candidate_id"),
             inverseJoinColumns = @JoinColumn(name = "skill_id"))
+           @EqualsAndHashCode.Exclude
     Set<Skill> skills = new HashSet();
+
 
     public void addSkill(Skill skill) {
         if (skills.add(skill)) {
             skill.getCandidates().add(this);
         }
     }
+
     public void removeSkill(Skill skill) {
         if (skills.remove(skill)) {
             skill.getCandidates().remove(this);

@@ -1,31 +1,31 @@
 package app.controllers;
 
 import app.daos.CandidateDAO;
-import app.daos.CandidateDAO;
-
+import app.daos.SkillDAO;
 import app.dtos.CandidateDTO;
+import app.dtos.SkillDTO;
+import app.dtos.SkillEvaluationResponseDTO;
 import app.entities.Candidate;
 import app.enums.Category;
 import app.exceptions.ApiException;
-import app.service.PackingService;
 import app.service.CandidateConverters;
+import app.service.ExternalEvaluationService;
+import app.service.SkillConverters;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-import jakarta.persistence.PersistenceException;
-import org.hibernate.dialect.function.DB2SubstringFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static app.service.CandidateConverters.convertToCandidateDTO;
 import static app.utils.ResponseUtil.disableCache;
-
-
 
 public class CandidateController {
     LocalDateTime timeStamp = LocalDateTime.now();
@@ -34,22 +34,52 @@ public class CandidateController {
 
     private static final Logger logger = LoggerFactory.getLogger("production");
     private static final Logger debugLogProd = LoggerFactory.getLogger("debug");
-    private final CandidateDAO CandidateDAO;
+    private final CandidateDAO candidateDAO;
+    private final SkillDAO skillDAO;
 
-    public CandidateController(CandidateDAO CandidateDAO) {
-        this.CandidateDAO = CandidateDAO;
+    public CandidateController(CandidateDAO candidateDAO, SkillDAO skillDAO) {
+        this.candidateDAO = candidateDAO;
+        this.skillDAO =skillDAO;
     }
 
     public void getCandidates(Context ctx) {
+        Category category;
+        List<CandidateDTO> allCandidateDTOs;
         try {
             disableCache(ctx);
-            List<CandidateDTO> candidateDTOs = CandidateConverters.convertToCandidateDTO(CandidateDAO.getAllCandidates());
+
+            String request = ctx.queryParam("category");
+
+            if (request != null && !request.isEmpty()) {
+                try {
+                    category = Category.valueOf(request.toUpperCase());
+                } catch (IllegalArgumentException iae) {
+                    ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("status", HttpStatus.BAD_REQUEST.getCode(),
+                            "msg", "Invalid category. Valid categories are: PROG_LANG, DB, DEVOPS, FRONTEND, TESTING, DATA, FRAMEWORK"));
+                    return;
+                }
+                 allCandidateDTOs = convertToCandidateDTO(candidateDAO.getAllCandidates());
+                Set<CandidateDTO> filteredForSkills = allCandidateDTOs.stream()
+                        .filter(can -> can.getSkillDTOs()
+                                .stream()
+                                .anyMatch(skill -> skill.equals(request)))
+                        .collect(Collectors.toSet());
+
+                Set<SkillDTO> allSkills = SkillConverters.convertToSkillDTOList(skillDAO.getAllSkills().stream().collect(Collectors.toSet()));
+                Set<SkillDTO> sortedSkills = allSkills.stream()
+                        .filter(Skill -> Skill.getCategory().equals(category))
+                        .collect(Collectors.toSet());
+
+                ctx.status(HttpStatus.OK).json(sortedSkills);
+            } else {
+                List<CandidateDTO> candidateDTOs = convertToCandidateDTO(candidateDAO.getAllCandidates());
                 if (candidateDTOs.isEmpty()) {
                     ctx.status(HttpStatus.NOT_FOUND).json(Map.of("status", HttpStatus.NOT_FOUND.getCode(), "msg", "No Candidates in database"));
                     logger.warn("No Candidates in database");
                 } else {
                     ctx.status(200).json(candidateDTOs);
                 }
+            }
         }
         catch (ApiException ae){
             int code = ae.getStatusCode();
@@ -67,13 +97,34 @@ public class CandidateController {
 
     public void getCandidateById(Context ctx) {
         int id = 0;
+
         try {
             disableCache(ctx);
             id = Integer.parseInt(ctx.pathParam("id"));
             if (id > 0) {
-                CandidateDTO CandidateDTO = CandidateConverters.convertToCandidateDTO(CandidateDAO.getCandidateById(id));
+                String request = "";
+                CandidateDTO candidateDTO = CandidateConverters.convertToCandidateDTO(candidateDAO.getCandidateById(id));
 
-                ctx.status(200).json(CandidateDTO);
+                String allSkillNames = candidateDTO.getSkillDTOs().stream()
+                        .map(s -> s.getName())
+                        .collect(Collectors.joining(","));
+
+                SkillEvaluationResponseDTO skillSet = ExternalEvaluationService.getSkillEvaluationList(allSkillNames);
+                // Tried but was far from able to make ie correct
+                List<SkillDTO> enhancedDTO = candidateDTO.getSkillDTOs().stream()
+                        .map(s -> {
+                            skillSet.getData().stream()
+                                    .filter(sk -> sk.getName().equalsIgnoreCase(s.getName()))
+                                    .findFirst()
+                                    .ifPresent(sk -> {
+                                        s.setPopularityScore(sk.getPopularityScore());
+                                        s.setAverageSalary(sk.getAverageSalary());
+                                    });
+                            return s;
+                        })
+                        .toList();
+
+                ctx.status(200).json(enhancedDTO);
             }
             else {
                 ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("status",HttpStatus.BAD_REQUEST.getCode(),"msg", "You need to type at id above 0"));
@@ -89,7 +140,7 @@ public class CandidateController {
             String debugMsg = "";
             if(code == 404){ msg = "Candidate with id " + id + " not found in database";}
             else {
-                msg = "Problems getting popolarity externally, try again later";
+                msg = "Problems getting popularity externally, try again later";
                 debugLogProd.error(formattedTime, debugMsg, ae);
             }
             ctx.status(code).json(
@@ -108,7 +159,7 @@ public class CandidateController {
         try {
             CandidateDTO newCandidate = ctx.bodyAsClass(CandidateDTO.class);
 
-            CandidateDTO createdCandidate = CandidateConverters.convertToCandidateDTO(CandidateDAO.createCandidate(CandidateConverters.convertToCandidate(newCandidate)));
+            CandidateDTO createdCandidate = convertToCandidateDTO(candidateDAO.createCandidate(CandidateConverters.convertToCandidate(newCandidate)));
             ctx.status(HttpStatus.CREATED).json(createdCandidate);
         }
         catch(BadRequestResponse br) {
@@ -119,7 +170,7 @@ public class CandidateController {
         catch (ApiException ae){
             int code = ae.getStatusCode();
             ctx.status(code).json(Map.of("status", code,
-                    "msg","Database problems, try agian later"));
+                    "msg","Database problems, try again later"));
             debugLogProd.debug(formattedTime, "Error with database trying to trying to create Candidate", ae);
         }
         catch(Exception e) {
@@ -135,20 +186,20 @@ public class CandidateController {
         try {
             id = Integer.parseInt(ctx.pathParam("id"));
             if (id > 0) {
-                Candidate = CandidateDAO.getCandidateById(id);
+                Candidate = candidateDAO.getCandidateById(id);
 
                 if (Candidate == null) {
                     ctx.status(HttpStatus.NOT_FOUND).json(Map.of("status", HttpStatus.NOT_FOUND.getCode(), "msg", "guide not found"));
                     return;
                 }
             }
-            CandidateDTO CandidateUpdateDTO = ctx.bodyAsClass(CandidateDTO.class);
-            if(CandidateUpdateDTO.getName() != null && CandidateUpdateDTO.getName().isEmpty()) {
+            CandidateDTO candidateUpdateDTO = ctx.bodyAsClass(CandidateDTO.class);
+            if(candidateUpdateDTO.getName() != null && candidateUpdateDTO.getName().isEmpty()) {
                 throw new BadRequestResponse("Name cannot be empty, exclude or put desired name");
             }
-            Candidate forUpdate = CandidateConverters.convertToCandidate(CandidateUpdateDTO);
-            Candidate updateResult = CandidateDAO.updateCandidate(id, forUpdate);
-            CandidateDTO updated = CandidateConverters.convertToCandidateDTO(updateResult);
+            Candidate forUpdate = CandidateConverters.convertToCandidate(candidateUpdateDTO);
+            Candidate updateResult = candidateDAO.updateCandidate(id, forUpdate);
+            CandidateDTO updated = convertToCandidateDTO(updateResult);
             ctx.status(HttpStatus.OK).json(updated);
         }
         catch(BadRequestResponse bre) {
@@ -182,7 +233,7 @@ public class CandidateController {
             disableCache(ctx);
             id = Integer.parseInt(ctx.pathParam("id"));
             if (id > 0) {
-                CandidateDAO.deleteCandidate(id);
+                candidateDAO.deleteCandidate(id);
                 ctx.status(HttpStatus.OK).json(Map.of("status",HttpStatus.OK.getCode(),"msg", "Candidate with id: " + id + " was deleted"));
             }
             else {
@@ -211,21 +262,27 @@ public class CandidateController {
         int skillId = 0;
         try {
             disableCache(ctx);
+            System.out.println("c1");
             candidateId = Integer.parseInt(ctx.pathParam("candidateId"));
+            System.out.println("c2");
             skillId = Integer.parseInt(ctx.pathParam("skillId"));
+            System.out.println("c3");
             if (candidateId <= 0) {
+                System.out.println("c3A");
                 ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("status", HttpStatus.BAD_REQUEST.getCode(),
                         "msg", "candidateId must be greater than 0"));
                 return;
             }
             if (skillId <= 0) {
+                System.out.println("c3B");
                 ctx.status(HttpStatus.BAD_REQUEST).json(Map.of(
                         "status", HttpStatus.BAD_REQUEST.getCode(),
                         "msg", "skillId must be greater than 0"));
                 return;
             }
-             CandidateDAO.addSkillToCandidate(candidateId, skillId);
-
+            System.out.println("c4");
+             candidateDAO.addSkillToCandidate(candidateId, skillId);
+            System.out.println("c5");
             ctx.status(HttpStatus.OK).json(Map.of(
                     "status", HttpStatus.OK.getCode(),"msg", "Skill has been added to candidate" ));
         }

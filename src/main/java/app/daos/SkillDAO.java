@@ -12,6 +12,8 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SkillDAO {
     private static SkillDAO instance;

@@ -37,7 +37,7 @@ public class Trip {
 
     @Column(name =  "location_cordinates", nullable = false)
     private String locationCordinates;
-
+//gdf
     @Column( name = "price", nullable = false)
     private double price;
 

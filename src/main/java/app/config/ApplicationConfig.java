@@ -34,7 +34,7 @@ public class ApplicationConfig {
         CandidateDAO candidateDAO = CandidateDAO.getInstance(emf);
 
         SkillController skillController = new SkillController(skillDAO);
-        CandidateController candidateController = new CandidateController(candidateDAO);
+        CandidateController candidateController = new CandidateController(candidateDAO, skillDAO);
 
         SecurityDAO securityDAO = new SecurityDAO(emf);
         SecurityController securityController = new SecurityController(securityDAO);

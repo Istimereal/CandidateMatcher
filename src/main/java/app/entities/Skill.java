@@ -43,6 +43,7 @@ public class Skill {
     }
 
     @ManyToMany(mappedBy = "skills", fetch = FetchType.EAGER)
+    @EqualsAndHashCode.Exclude
     private Set<Candidate> candidates = new HashSet<>();
 
     public void addCandidate(Candidate candidate) {

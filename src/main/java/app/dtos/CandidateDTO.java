@@ -1,7 +1,10 @@
 package app.dtos;
 
 import app.entities.Candidate;
+import app.entities.Skill;
 import lombok.*;
+
+import java.util.Set;
 
 @Setter
 @Getter
@@ -13,9 +16,14 @@ public class CandidateDTO {
     private String name;
     private String phonenumber;
 
-    public CandidateDTO(Candidate candidate) {
-        this.name = candidate.getName();
-        this.phonenumber = candidate.getPhoneNumber();
+    private Set<SkillDTO> skillDTOs;
 
+    SkillEvaluationResponseDTO evaluations;
+
+    public Set<SkillDTO> getSkillDTOs(){
+
+        return this.skillDTOs;
     }
+
+
 }

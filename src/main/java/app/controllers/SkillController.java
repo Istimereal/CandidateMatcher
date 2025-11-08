@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static app.utils.ResponseUtil.disableCache;
 
@@ -76,7 +78,7 @@ public class SkillController {
     public void getAllSkills(Context ctx){
         try {
             disableCache(ctx);
-            List<SkillDTO> skillDTOs = SkillConverters.convertToSkillDTOList(skillDAO.getAllSkills());
+            Set<SkillDTO> skillDTOs = SkillConverters.convertToSkillDTOList(skillDAO.getAllSkills().stream().collect(Collectors.toSet()));
 
             if(skillDTOs.isEmpty()) {
                 ctx.status(HttpStatus.NOT_FOUND).json(Map.of("status",HttpStatus.NOT_FOUND.getCode(),

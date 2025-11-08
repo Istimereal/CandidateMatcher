@@ -5,6 +5,8 @@ import app.dtos.SkillDTO;
 import app.entities.Skill;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SkillConverters {
 
@@ -36,10 +38,10 @@ public class SkillConverters {
         return builder.build();
     }
 
-    public static List<SkillDTO> convertToSkillDTOList(List<Skill> Skills) {
+    public static Set<SkillDTO> convertToSkillDTOList(Set<Skill> Skills) {
 
         return Skills.stream()
                 .map(SkillConverters::convertToSkillDTO)
-                .toList();
+                .collect(Collectors.toSet());
     }  
 }

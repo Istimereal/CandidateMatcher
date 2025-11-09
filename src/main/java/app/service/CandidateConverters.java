@@ -20,7 +20,8 @@ public class CandidateConverters {
 
         CandidateDTO.CandidateDTOBuilder builder = CandidateDTO.builder()
                 .name(candidate.getName())
-                .phonenumber(candidate.getPhoneNumber());
+                .phoneNumber(candidate.getPhoneNumber())
+                .educationBackground(candidate.getEducationBackground());
 
         if(candidate.getId() > 0){
             builder.id(candidate.getId());
@@ -28,7 +29,7 @@ public class CandidateConverters {
         if(candidate.getSkills() != null){
             Set<SkillDTO> skillDTOs = convertToSkillDTOList(candidate.getSkills());
 
-            builder.skillDTOs(skillDTOs);
+            builder.skillEvaluations(skillDTOs);
         }
         return builder.build();
     }
@@ -40,8 +41,12 @@ public class CandidateConverters {
             builder.name(candidateDTO.getName());
         }
 
-        if (candidateDTO.getPhonenumber() != null) {
-            builder.phoneNumber(candidateDTO.getPhonenumber());
+        if (candidateDTO.getPhoneNumber() != null) {
+            builder.phoneNumber(candidateDTO.getPhoneNumber());
+        }
+
+        if(candidateDTO.getEducationBackground() != null){
+            builder.educationBackground(candidateDTO.getEducationBackground());
         }
 
         if (candidateDTO.getId() > 0) {

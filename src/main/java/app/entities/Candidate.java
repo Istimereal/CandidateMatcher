@@ -32,11 +32,14 @@ public class Candidate {
     @Column(name =  "phonenumber", nullable = false)
     String phoneNumber;
 
+    @Column(name = "education_background", nullable = false)
+    String educationBackground;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "candidate_skill", joinColumns = @JoinColumn(name = "candidate_id"),
             inverseJoinColumns = @JoinColumn(name = "skill_id"))
            @EqualsAndHashCode.Exclude
+    @Builder.Default
     Set<Skill> skills = new HashSet();
 
 

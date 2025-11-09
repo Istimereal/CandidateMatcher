@@ -42,6 +42,7 @@ public class Skill {
         this.description = description;
     }
 
+    @Builder.Default
     @ManyToMany(mappedBy = "skills", fetch = FetchType.EAGER)
     @EqualsAndHashCode.Exclude
     private Set<Candidate> candidates = new HashSet<>();

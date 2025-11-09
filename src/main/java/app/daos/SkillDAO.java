@@ -141,6 +141,7 @@ public class SkillDAO {
                     em.getTransaction().rollback();}
                 throw new ApiException(404, "Skill with" + integer + "Does not exist");
             }
+
             for(Candidate candidate : delete.getCandidates()) {
                 candidate.getSkills().remove(delete);
             }

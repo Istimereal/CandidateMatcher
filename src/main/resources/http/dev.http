@@ -63,7 +63,19 @@ Content-Type: application/json
 
 {
   "name": "Peter",
-  "phonenumber": "12345678"
+  "phoneNumber": "12345678",
+  "educationBackground": "Software engineer"
+}
+
+### Create candidate
+POST {{baseUrl}}/candidates
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Cody",
+  "phoneNumber": "12345678",
+  "educationBackground": "Software engineer"
 }
 
 ### Update candidate
@@ -72,7 +84,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "phonenumber": "87654321"
+  "phoneNumber": "87654321"
 }
 
 ### Delete candidate
@@ -98,6 +110,16 @@ Content-Type: application/json
   "description": "Databases and data storage technologies"
 }
 
+### Create skill, Same as s1 in populateTestDB
+POST {{baseUrl}}/skills
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Java",
+  "category": "PROG_LANG",
+  "description": "General-purpose programming languages"
+}
 ### Update skill
 PUT {{baseUrl}}/skills/1
 Authorization: Bearer {{token}}

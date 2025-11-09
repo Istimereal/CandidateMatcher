@@ -47,7 +47,7 @@ public class SecurityController implements ISecurityController {
                 String token = createToken(verifiedUserDTO);
 
                 ctx.status(HttpStatus.OK).json(Map.of("username", verifiedUserDTO.getUsername(), "token", token));
-                System.out.println("login 1.6");
+
             } catch(ValidationException ex){
                 //     ObjectNode on = objectMapper.createObjectNode().put("msg","login failed. Wrong username or password");
 

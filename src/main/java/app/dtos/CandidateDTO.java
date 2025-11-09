@@ -14,16 +14,7 @@ import java.util.Set;
 public class CandidateDTO {
     private int id;
     private String name;
-    private String phonenumber;
-
-    private Set<SkillDTO> skillDTOs;
-
-    SkillEvaluationResponseDTO evaluations;
-
-    public Set<SkillDTO> getSkillDTOs(){
-
-        return this.skillDTOs;
-    }
-
-
+    private String phoneNumber;
+    private String educationBackground;
+    private Set<SkillDTO> skillEvaluations;
 }

@@ -6,6 +6,7 @@ import app.dtos.CandidateDTO;
 import app.dtos.SkillDTO;
 import app.dtos.SkillEvaluationResponseDTO;
 import app.entities.Candidate;
+import app.entities.Skill;
 import app.enums.Category;
 import app.exceptions.ApiException;
 import app.service.CandidateConverters;
@@ -60,17 +61,12 @@ public class CandidateController {
                 }
                  allCandidateDTOs = convertToCandidateDTO(candidateDAO.getAllCandidates());
                 Set<CandidateDTO> filteredForSkills = allCandidateDTOs.stream()
-                        .filter(can -> can.getSkillDTOs()
+                        .filter(can -> can.getSkillEvaluations()
                                 .stream()
-                                .anyMatch(skill -> skill.equals(request)))
+                                .anyMatch(skill -> skill.getCategory().equals(request.toUpperCase())))
                         .collect(Collectors.toSet());
 
-                Set<SkillDTO> allSkills = SkillConverters.convertToSkillDTOList(skillDAO.getAllSkills().stream().collect(Collectors.toSet()));
-                Set<SkillDTO> sortedSkills = allSkills.stream()
-                        .filter(Skill -> Skill.getCategory().equals(category))
-                        .collect(Collectors.toSet());
-
-                ctx.status(HttpStatus.OK).json(sortedSkills);
+                ctx.status(HttpStatus.OK).json(filteredForSkills);
             } else {
                 List<CandidateDTO> candidateDTOs = convertToCandidateDTO(candidateDAO.getAllCandidates());
                 if (candidateDTOs.isEmpty()) {
@@ -84,7 +80,7 @@ public class CandidateController {
         catch (ApiException ae){
             int code = ae.getStatusCode();
             ctx.status(code).json(Map.of("status", code,
-                    "msg","Database problems, try agian later"));
+                    "msg","Database problems, try again later"));
             debugLogProd.debug(formattedTime, "Error with database trying to trying to get all", ae);
         }
         catch (Exception e) {
@@ -105,26 +101,24 @@ public class CandidateController {
                 String request = "";
                 CandidateDTO candidateDTO = CandidateConverters.convertToCandidateDTO(candidateDAO.getCandidateById(id));
 
-                String allSkillNames = candidateDTO.getSkillDTOs().stream()
-                        .map(s -> s.getName())
+                String allSkillNames = candidateDTO.getSkillEvaluations().stream()
+                        .map(s -> s.getName().toLowerCase())
                         .collect(Collectors.joining(","));
 
                 SkillEvaluationResponseDTO skillSet = ExternalEvaluationService.getSkillEvaluationList(allSkillNames);
                 // Tried but was far from able to make ie correct
-                List<SkillDTO> enhancedDTO = candidateDTO.getSkillDTOs().stream()
-                        .map(s -> {
-                            skillSet.getData().stream()
-                                    .filter(sk -> sk.getName().equalsIgnoreCase(s.getName()))
-                                    .findFirst()
-                                    .ifPresent(sk -> {
-                                        s.setPopularityScore(sk.getPopularityScore());
-                                        s.setAverageSalary(sk.getAverageSalary());
-                                    });
-                            return s;
-                        })
-                        .toList();
+                candidateDTO.getSkillEvaluations().forEach(s -> {
+                    skillSet.getData().stream()
+                            .filter(ext -> ext.getName().equalsIgnoreCase(s.getName()))
+                            .findFirst()
+                            .ifPresent(ext -> {
+                                s.setPopularityScore(ext.getPopularityScore());
+                                s.setAverageSalary(ext.getAverageSalary());
+                            });
+                });
 
-                ctx.status(200).json(enhancedDTO);
+
+                ctx.status(200).json(candidateDTO);
             }
             else {
                 ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("status",HttpStatus.BAD_REQUEST.getCode(),"msg", "You need to type at id above 0"));

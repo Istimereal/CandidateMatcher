@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 //import static app.enums.Category.*;
@@ -54,14 +55,16 @@ public class Populator {
             // Slet Users før Roles (ellers FK-fejl)
             em.createQuery("DELETE FROM Role").executeUpdate();
             em.createQuery("DELETE FROM User").executeUpdate();
-
+            System.out.println("Pop 1");
             Role adminRole = new Role("ADMIN");
             Role userRole = new Role("USER");
             Role anyRole = new Role("ANYONE");
             em.persist(adminRole);
+            System.out.println("Pop 2");
             em.persist(userRole);
+            System.out.println("Pop 3");
             em.persist(anyRole);
-
+            System.out.println("Pop 4");
             User admin = new User("admin", "admin123");
             User normalUser = new User("user1", "pass123");
 
@@ -69,15 +72,16 @@ public class Populator {
             userRole.addUser(normalUser);
 
             em.persist(admin);
+            System.out.println("Pop 5");
             em.persist(normalUser);
-
+            System.out.println("Pop 6");
             em.getTransaction().commit();
 
             System.out.println("Users and roles created successfully!");
         }
     }
 
-    public void poppulateDBTest() {
+    public void populateTestDB() {
         try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             Skill s1 = Skill.builder()
@@ -107,11 +111,15 @@ public class Populator {
             Candidate c1 = Candidate.builder()
                             .name("Cody")
                     .phoneNumber("12345678")
+                    .educationBackground("Software engineer")
+                    .skills(new HashSet<>())
                             .build();
 
             Candidate c2 = Candidate.builder()
-                    .name("Boby")
+                    .name("Bobby")
                     .phoneNumber("34567812")
+                    .educationBackground("Datalog")
+                    .skills(new HashSet<>())
                     .build();
 
             em.persist(s1);
@@ -120,8 +128,8 @@ public class Populator {
             em.persist(s4);
 
             c1.addSkill(s1);
-            c1.addSkill(s2);
 
+            c2.addSkill(s2);
             c2.addSkill(s3);
             c2.addSkill(s4);
 
@@ -132,7 +140,8 @@ public class Populator {
         }
         catch (Exception e){
 
-            System.out.println("Exception in poppulateDBTest");
+            System.out.println("Exception in populate Test DB");
+            System.out.println(e.getCause() + " Message: " + e.getMessage());
         }
     }
 
@@ -149,7 +158,7 @@ public class Populator {
             System.out.println("Roles created successfully!");
         }
         catch (Exception e) {
-            System.out.println("Exception in poppulateDBTestSecurity: " + e.getMessage());
+            System.out.println("Exception in populateDBTestSecurity: " + e.getMessage());
         }
     }
 }

@@ -108,8 +108,8 @@ public class HibernateConfig {
 
     private static Properties setDevProperties(Properties props) {
         props.put("hibernate.connection.url", "jdbc:postgresql://localhost:5432/candidate_matcher");
-        props.put("hibernate.connection.username", "dev2");
-        props.put("hibernate.connection.password", "ax22");
+        props.put("hibernate.connection.username", "dev3");
+        props.put("hibernate.connection.password", "ax33");
         props.put("hibernate.hbm2ddl.auto", "update"); // To keep tables
         props.put("hibernate.show_sql", "true");
         props.put("hibernate.format_sql", "true");

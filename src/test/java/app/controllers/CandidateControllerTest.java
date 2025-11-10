@@ -149,7 +149,7 @@ class CandidateControllerTest {
 
         }
 
-
+/*
     @Test
     void createCandidate() {
     }
@@ -172,5 +172,5 @@ class CandidateControllerTest {
 
     @Test
     void linkGuideToCandidate() {
-    }
+    }  */
 }

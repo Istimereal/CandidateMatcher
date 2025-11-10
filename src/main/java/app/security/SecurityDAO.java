@@ -26,21 +26,15 @@ public class SecurityDAO implements ISecurityDAO{
 
         try(EntityManager em = emf.createEntityManager()){
             User foundUser = em.find(User.class, username);
-            System.out.println("🔹 Bruger fundet BEFORE IF: " + foundUser.getUsername());
-            System.out.println("🔹 Hashed fra DB: " + foundUser.getPassword());
-            System.out.println("🔹 Indtastet password: " + password);
-            System.out.println("🔹 BCrypt check: BEFORE IF " + BCrypt.checkpw(password, foundUser.getPassword()));
 
             if(foundUser != null && foundUser.verifyPassword(password)) //foundUser.verifyPassword(password) == true
-            {System.out.println("🔹 Bruger fundet: " + foundUser.getUsername());
-                System.out.println("🔹 Hashed fra DB: " + foundUser.getPassword());
-                System.out.println("🔹 Indtastet password: " + password);
-                System.out.println("🔹 BCrypt check: " + BCrypt.checkpw(password, foundUser.getPassword()));
-
+            {
                 return foundUser;
             }
+            else {
+                throw new ValidationException("User or Password was incorrect");
+            }
         }
-        return null;
     }
 
     @Override

@@ -64,7 +64,6 @@ class CandidateControllerTest {
                             .extract()
                             .path("token");
 
-            System.out.println();
         }
     }
 

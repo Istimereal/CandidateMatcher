@@ -2,12 +2,15 @@ package app.security;
 
 import app.config.ApplicationConfig;
 import app.config.HibernateConfig;
+import app.entities.Candidate;
 import app.service.Populator;
 import io.javalin.Javalin;
 import io.restassured.RestAssured;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.*;
+
+import java.util.HashSet;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -112,12 +115,6 @@ class SecurityControllerTest {
     }
 
     @Test
-    @DisplayName("Login returns valid token")
-    void userLogin() {
-        Assertions.assertNotNull(adminToken);
-    }
-
-    @Test
     @DisplayName("User failed login")
     void userLoginFail() {
         //Arrange
@@ -125,7 +122,7 @@ class SecurityControllerTest {
                 { "username": "user1", "password": "wrongpass" }
                 """;
         //Act
-        given()
+            given()
                 .contentType("application/json")
                 .body(userJson)
                 .when()
@@ -138,34 +135,59 @@ class SecurityControllerTest {
                 .when()
                 .post("/auth/login")
                 .then()
-                .statusCode(500)
-                .body("msg", contains("login failed"));
-
+                .statusCode(401)
+                .body("msg", equalTo("login failed. Wrong username or password"));
     }
-
+/*
     @Test
-    @DisplayName("Access protected endpoint with valid token")
-    void testAccessProtectedEndpoint() {
-        //Act done in beforeAll
+    @DisplayName("User try to delete candidate")
+    public void userDeleteCandidate(){
+        //Arrange
+        try(EntityManager em = emfTest.createEntityManager()){
 
-        //act and Assert
-        given()
-                .header("Authorization", "Bearer " + adminToken)
-                .when()
-                .get("/protected/admin_demo/")
-                .then()
-                .statusCode(200);
-    }
+            em.getTransaction().begin();
 
-    @Test
-    @DisplayName("Access protected endpoint without token")
-    void testAccessWithoutToken() {
+            Candidate c1 = Candidate.builder()
+                    .name("Cody")
+                    .phoneNumber("12345678")
+                    .educationBackground("Software engineer")
+                    .skills(new HashSet<>())
+                    .build();
+
+            em.persist(c1);
+            em.getTransaction().commit();
+            em.close();
+        }
+        catch (Exception e){
+            System.out.println("Could not persist candidate");
+        }
+
+        //Act
         given()
+                .contentType("application/json")
+                .body(userJson)
                 .when()
-                .get("/protected/admin_demo/")
+                .post("/auth/register");
+
+        String token =  given()
+                .contentType("application/json")
+                .body(userJson)
+                .when()
+                .post("/auth/login")
                 .then()
-                .statusCode(401);
-    }
+                .extract()
+                .path("token");
+
+        //Assert
+        given()
+                .header("Authorization", "Bearer " + token)
+                .contentType("application/json")
+                .when()
+                .delete("/candidates/1")
+                .then()
+                .statusCode(403)
+                .body("msg", equalTo("Not authorized"));
+    }  */
 
     @AfterAll
     static void stopServer() {

@@ -38,21 +38,20 @@ public class SecurityController implements ISecurityController {
                 User user = ctx.bodyAsClass(User.class);
 
                 User verifiedUser = securityDAO.getVerifiedUser(user.getUsername(), user.getPassword());
-                System.out.println("LOGIN 1");
+
                 Set<String> stringRoles = verifiedUser.getRoles()
                         .stream()
                         .map(role->role.getRoleName())
                         .collect(Collectors.toSet());
-                System.out.println("LOGIN 2");
+
                 UserDTO verifiedUserDTO = new UserDTO(verifiedUser.getUsername(), stringRoles);
-                System.out.println("LOGIN 3");
+
                 String token = createToken(verifiedUserDTO);
-                System.out.println("LOGIN 4");
+
                 ctx.status(HttpStatus.OK).json(Map.of("username", verifiedUserDTO.getUsername(), "token", token));
 
             } catch(ValidationException ex){
-                //     ObjectNode on = objectMapper.createObjectNode().put("msg","login failed. Wrong username or password");
-                System.out.println("LOGIN er");
+
                 ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("status", HttpStatus.UNAUTHORIZED.getCode(), "msg", "login failed. Wrong username or password"));
             }
         };
@@ -181,8 +180,6 @@ public class SecurityController implements ISecurityController {
 
     public String createToken(dk.bugelhartmann.UserDTO user) throws Exception {
         try {
-            System.out.println("create token 1");
-            System.out.println("createToken user: " + user.getUsername() + ", roles= " + user.getRoles());
 
             String ISSUER;
             String TOKEN_EXPIRE_TIME;
@@ -194,8 +191,6 @@ public class SecurityController implements ISecurityController {
                 SECRET_KEY = System.getenv("SECRET_KEY");
 
             } else {
-
-                System.out.println("createToken developer: 1 a.");
                 ISSUER = "Thomas Hartmann";
                 TOKEN_EXPIRE_TIME = "1800000";
                 SECRET_KEY = Utils.getPropertyValue("SECRET_KEY", "config.properties");
@@ -205,14 +200,13 @@ public class SecurityController implements ISecurityController {
                     user.getUsername(),
                     user.getRoles().stream().map(String::toUpperCase).collect(Collectors.toSet())
             );
-            System.out.println("create token 2");
             String token = tokenSecurity.createToken(fixedUser, ISSUER, TOKEN_EXPIRE_TIME, SECRET_KEY);
-            System.out.println("create token 3");
+
             return token;
 
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("create token 1 eror");
+
             throw new Exception("Could not create token", e);}
     }
 
